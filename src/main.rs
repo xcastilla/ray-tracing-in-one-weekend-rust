@@ -17,11 +17,23 @@ extern crate rand;
 use rand::Rng;
 
 
+fn rand_point_in_unit_sphere() -> Vec3 {
+    let mut p: Vec3;
+    let mut rng = rand::thread_rng();
+    loop {
+        p = Vec3{ e: [rng.gen::<f32>(), rng.gen::<f32>(), rng.gen::<f32>()] }*2.0 - Vec3{ e:[1.0, 1.0, 1.0] };
+        if(p.squared_length() < 1.0) {
+            break;
+        }
+    }
+    return p;
+}
+
 fn color(ray: &Ray, world: &Vec<Sphere>) -> Vec3 {
-    let rec: HitRecord = HitRecord{ t: 1.0, p: Vec3{e: [0.0, 0.0, 0.0]}, normal: Vec3{ e: [0.0, 0.0, 0.0]} };
-    if let Some(record) = (world.hit(ray, 0.0, f32::MAX, rec)) {
-        let N = record.normal;
-        return Vec3{ e: [N.x() + 1.0, N.y() + 1.0, N.z() + 1.0] } * 0.5;
+    let rec: HitRecord = HitRecord{ t: 0.0, p: Vec3{e: [0.0, 0.0, 0.0]}, normal: Vec3{ e: [0.0, 0.0, 0.0]} };   
+    if let Some(record) = (world.hit(ray, 0.001, f32::MAX, rec)) {
+        let target: Vec3 = record.p + record.normal + rand_point_in_unit_sphere();
+        return color(&Ray { origin: record.p, direction: target - record.p}, world)*0.5;
     }
     else {
         let unit_direction: Vec3 = unit_vector(ray.direction());
@@ -55,6 +67,7 @@ fn main() -> std::io::Result<()> {
                 col += color(&ray, &world);
             }
             col /= n_samples as f32;
+            col = Vec3 { e: [col.x().sqrt(), col.y().sqrt(), col.z().sqrt()] };
             let ir: u32 = (255.99*col[0]) as u32;
             let ig: u32 = (255.99*col[1]) as u32;
             let ib: u32 = (255.99*col[2]) as u32;

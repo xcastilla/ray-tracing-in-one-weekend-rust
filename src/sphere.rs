@@ -1,4 +1,4 @@
-use crate::vec3::Vec3;
+use crate::vec3::*;
 use crate::hittable::*;
 use crate::ray::Ray;
 
@@ -24,11 +24,15 @@ impl Hittable for Sphere {
         if(discriminant > 0.0) {
             let mut temp: f32 = (-b - discriminant.sqrt())/a;
             if(temp < t_max && temp > t_min) {
-                return Some(HitRecord{t: temp, p: ray.point_at_parameter(rec.t), normal: (rec.p - self.center)/self.radius })
+                let p: Vec3 = ray.point_at_parameter(temp);
+                let normal: Vec3 = unit_vector((p - self.center)/self.radius);
+                return Some(HitRecord{t: temp, p: p, normal: normal })
             }
             temp = (-b + discriminant.sqrt())/a;
             if(temp < t_max && temp > t_min) {
-                return Some(HitRecord{t: temp, p: ray.point_at_parameter(rec.t), normal: (rec.p - self.center)/self.radius })
+                let p: Vec3 = ray.point_at_parameter(temp);
+                let normal: Vec3 = unit_vector((p - self.center)/self.radius);
+                return Some(HitRecord{t: temp, p: p, normal: normal })
             }
         }
         return ret_rec;
@@ -38,10 +42,9 @@ impl Hittable for Sphere {
 impl Hittable for Vec<Sphere> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, rec: HitRecord) -> Option<HitRecord> {
         let mut temp_rec: Option<HitRecord> = None;
-        let mut closest_so_far: f32;
+        let mut closest_so_far: f32 = t_max;
         for i in 0 .. self.len() {
-            //let mut rec2 = rec.clone();
-            if let Some(record) = self[i].hit(ray, t_min, t_max, rec) {
+            if let Some(record) = self[i].hit(ray, t_min, closest_so_far, rec) {
                 closest_so_far = record.t;
                 temp_rec = Some(record);
             }

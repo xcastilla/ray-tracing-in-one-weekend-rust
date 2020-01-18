@@ -53,8 +53,9 @@ fn main() -> std::io::Result<()> {
     let camera: Camera = Camera::new();
     let world: Vec<Sphere> = vec![Sphere{ center: Vec3{e: [0.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Lambertian { albedo: Vec3 {e: [0.1, 0.2, 0.5]} })},
                                   Sphere{ center: Vec3{e: [0.0, -100.5, -1.0]}, radius: 100.0, material: Arc::new(Lambertian { albedo: Vec3 { e: [0.8, 0.8, 0.0]} })},
-                                  Sphere{ center: Vec3{e: [1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Metal { albedo: Vec3 { e: [0.8, 0.6, 0.2]}, fuzz: 0.0 })},
-                                  Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Dielectric { refraction_index: 1.5 }) } ] ;
+                                  Sphere{ center: Vec3{e: [1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Metal { albedo: Vec3 { e: [0.8, 0.6, 0.2]}, fuzz: 0.3 })},
+                                  Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Dielectric { refraction_index: 1.5 }) },
+                                  Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: -0.45, material: Arc::new(Dielectric { refraction_index: 1.5 }) } ] ;
     // Random number generator
     let mut rng = rand::thread_rng();
 

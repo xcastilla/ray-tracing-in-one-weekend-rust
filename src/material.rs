@@ -41,6 +41,11 @@ pub fn refract(v: Vec3, n: Vec3, ni_over_nt: f32) -> Option<Vec3> {
     return None;
 }
 
+pub fn schlick(cosine: f32, ref_idx: f32) -> f32 {
+    let mut r0: f32 = (1.0 - ref_idx)/(1.0 + ref_idx);
+    r0 = r0 * r0;
+    return r0 + (1.0 + r0)* (1.0 - cosine).powi(5);
+}
 
 // Util function for Lambertian surface scattering implementation
 fn rand_point_in_unit_sphere() -> Vec3 {
@@ -78,25 +83,33 @@ impl Material for Dielectric {
         let mut outward_normal: Vec3;
         let reflected: Vec3 = reflect(ray_in.direction, hit_record.normal);
         let attenuation: Vec3 = Vec3 { e: [1.0, 1.0, 1.0] };
+        let mut rng = rand::thread_rng();
         let mut ni_over_nt: f32;
+        let mut reflect_prob: f32;
+        let mut cosine: f32;
+        
         if(ray_in.direction.dot(hit_record.normal) > 0.0) {
             outward_normal = -hit_record.normal;
             ni_over_nt = self.refraction_index;
+            cosine = self.refraction_index * ray_in.direction.dot(hit_record.normal) / ray_in.direction.length();
         }
         else {
             outward_normal = hit_record.normal;
             ni_over_nt = 1.0/self.refraction_index;
+            cosine = -ray_in.direction.dot(hit_record.normal) / ray_in.direction.length();
         }
 
+
+        let mut refracted_ret: Vec3;
         if let Some(refracted) = refract(ray_in.direction, outward_normal, ni_over_nt) {
-            let scattered: Ray = Ray{ origin: hit_record.p, direction: refracted }; 
-            return Some(ScatterRet{ attenuation: attenuation, ray: scattered})
+            reflect_prob = schlick(cosine, self.refraction_index);
+            if(rng.gen::<f32>() >= reflect_prob) {
+                let scattered: Ray = Ray{ origin: hit_record.p, direction: refracted }; 
+                return Some(ScatterRet{ attenuation: attenuation, ray: scattered})
+            }
         }
-        else {
-            let scattered: Ray = Ray{ origin: hit_record.p, direction: reflected }; 
-            return Some(ScatterRet{ attenuation: attenuation, ray: scattered});
-        }
-
+        let scattered: Ray = Ray{ origin: hit_record.p, direction: reflected }; 
+        return Some(ScatterRet{ attenuation: attenuation, ray: scattered});
     }
 }
 

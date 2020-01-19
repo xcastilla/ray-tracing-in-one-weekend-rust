@@ -5,7 +5,7 @@ extern crate rand;
 use rand::Rng;
 use std::sync::Arc;
 
-pub trait Material{
+pub trait Material {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatterRet>;
 }
 
@@ -48,7 +48,7 @@ pub fn schlick(cosine: f32, ref_idx: f32) -> f32 {
 }
 
 // Util function for Lambertian surface scattering implementation
-fn rand_point_in_unit_sphere() -> Vec3 {
+pub fn rand_point_in_unit_sphere() -> Vec3 {
     let mut p: Vec3;
     let mut rng = rand::thread_rng();
     loop {

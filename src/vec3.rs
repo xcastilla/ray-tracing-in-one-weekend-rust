@@ -8,6 +8,12 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
+    pub fn default() -> Vec3 {
+        Vec3 {
+            e: [0.0, 0.0, 0.0]
+        }
+    }
+
     pub fn new(e0: f32, e1: f32, e2: f32) -> Vec3 {
         Vec3 {
             e: [e0, e1, e2],
@@ -55,7 +61,7 @@ impl Vec3 {
     }
     
     // Dot and cross products with other vec3
-    
+
     pub fn dot(&self, other: Vec3) -> f32 {
         self.e[0] * other.e[0] + self.e[1] * other.e[1] + self.e[2] * other.e[2]
     }

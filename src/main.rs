@@ -40,27 +40,69 @@ fn color(ray: &Ray, world: &Vec<Sphere>, depth: i32) -> Vec3 {
     }
 }
 
+fn random_scene() -> Vec<Sphere> {
+    let n: i32 = 500;
+    let mut world: Vec<Sphere> = Vec::new();
+    let mut rng = rand::thread_rng();
+    let mut new_sphere = Sphere::new(Vec3::new(0.0, 1000.0, 0.0), 1000.0, Arc::new(Lambertian { albedo: Vec3 {e: [0.5, 0.5, 0.5]} }));
+    world.push(new_sphere);
+    let i: i32 = 1;
+    for a in -11 .. 11 {
+        for b in -11 .. 11 {
+            let choose_mat: f32 = rng.gen::<f32>();
+            let center: Vec3 = Vec3::new(a as f32 +0.9*rng.gen::<f32>(), 0.2, b as f32 + 0.9*rng.gen::<f32>());
+            if((center -  Vec3::new(4.0, 0.2, 0.0)).length() > 0.9) {
+                if(choose_mat < 0.8) {
+                    new_sphere = Sphere::new(center, 0.2, 
+                                            Arc::new(Lambertian { albedo: Vec3::new(rng.gen::<f32>() * rng.gen::<f32>(), 
+                                                                                    rng.gen::<f32>() * rng.gen::<f32>(),
+                                                                                    rng.gen::<f32>() * rng.gen::<f32>())}));
+                    world.push(new_sphere);
+                }
+                else if(choose_mat < 0.95) {
+                    new_sphere = Sphere::new(center, 0.2, 
+                                            Arc::new(Metal { albedo: Vec3::new(0.5 * (1.0 + rng.gen::<f32>()), 
+                                                                               0.5 * (1.0 + rng.gen::<f32>()),
+                                                                               0.5 * (1.0 + rng.gen::<f32>())),
+                                                                               fuzz: 0.5 * rng.gen::<f32>()}));
+                    world.push(new_sphere);
+                }
+                else {
+                    new_sphere = Sphere::new(center, 0.2, 
+                                            Arc::new(Dielectric { refraction_index: 1.5}));
+                }
+            }
+        }
+    }
+    world.push(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, Arc::new(Dielectric { refraction_index: 1.5})));
+    world.push(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, Arc::new(Lambertian { albedo: Vec3::new(0.4, 0.2, 0.1)})));
+    world.push(Sphere::new(Vec3::new(4.0, 1.0, 0.0), 1.0, Arc::new(Metal { albedo: Vec3::new(0.7, 0.6, 0.5), fuzz: 0.0})));
+
+    return world;
+}
+
+
 
 fn main() -> std::io::Result<()> {
-    let nx = 200;
-    let ny = 100;
-    let n_samples = 100;
+    let nx = 1500;
+    let ny = 750;
+    let n_samples = 50;
 
     let mut file = File::create("foo.ppm")?;
     let mut line = format!("P3\n{} {}\n255\n", nx, ny);
     file.write_all(line.as_bytes())?;
 
-    let look_from: Vec3 = Vec3::new(3.0, 3.0, 2.0);
+    let look_from: Vec3 = Vec3::new(9.0, 1.5, 3.0);
     let look_at: Vec3 = Vec3::new(0.0, 0.0, -1.0);
     let dist_to_focus: f32 = (look_from - look_at).length();
-    let aperture: f32 = 1.0;
-    let camera: Camera = Camera::new(look_from, look_at, Vec3::new(0.0, 1.0, 0.0), 20.0, nx as f32/ny as f32, aperture, dist_to_focus);
-    let world: Vec<Sphere> = vec![Sphere{ center: Vec3{e: [0.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Lambertian { albedo: Vec3 {e: [0.1, 0.2, 0.5]} })},
-                                  Sphere{ center: Vec3{e: [0.0, -100.5, -1.0]}, radius: 100.0, material: Arc::new(Lambertian { albedo: Vec3 { e: [0.8, 0.8, 0.0]} })},
-                                  Sphere{ center: Vec3{e: [1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Metal { albedo: Vec3 { e: [0.8, 0.6, 0.2]}, fuzz: 0.3 })},
-                                  Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Dielectric { refraction_index: 1.5 }) },
-                                  Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: -0.45, material: Arc::new(Dielectric { refraction_index: 1.5 }) } ] ;
-    
+    let aperture: f32 = 0.0;
+    let camera: Camera = Camera::new(look_from, look_at, Vec3::new(0.0, 1.0, 0.0), 30.0, nx as f32/ny as f32, aperture, dist_to_focus);
+    // let world: Vec<Sphere> = vec![Sphere{ center: Vec3{e: [0.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Lambertian { albedo: Vec3 {e: [0.1, 0.2, 0.5]} })},
+    //                               Sphere{ center: Vec3{e: [0.0, -100.5, -1.0]}, radius: 100.0, material: Arc::new(Lambertian { albedo: Vec3 { e: [0.8, 0.8, 0.0]} })},
+    //                               Sphere{ center: Vec3{e: [1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Metal { albedo: Vec3 { e: [0.8, 0.6, 0.2]}, fuzz: 0.3 })},
+    //                               Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Dielectric { refraction_index: 1.5 }) },
+    //                               Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: -0.45, material: Arc::new(Dielectric { refraction_index: 1.5 }) } ] ;
+    let world = random_scene();
     // Random number generator
     let mut rng = rand::thread_rng();
     for j in (0 .. ny).rev() {

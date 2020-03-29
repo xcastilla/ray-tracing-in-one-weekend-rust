@@ -44,7 +44,7 @@ fn random_scene() -> Vec<Sphere> {
     let n: i32 = 500;
     let mut world: Vec<Sphere> = Vec::new();
     let mut rng = rand::thread_rng();
-    let mut new_sphere = Sphere::new(Vec3::new(0.0, 1000.0, 0.0), 1000.0, Arc::new(Lambertian { albedo: Vec3 {e: [0.5, 0.5, 0.5]} }));
+    let mut new_sphere = Sphere::new(Vec3::new(0.0, -1000.0, 0.0), 1000.0, Arc::new(Lambertian { albedo: Vec3 {e: [0.5, 0.5, 0.5]} }));
     world.push(new_sphere);
     let i: i32 = 1;
     for a in -11 .. 11 {
@@ -84,8 +84,8 @@ fn random_scene() -> Vec<Sphere> {
 
 
 fn main() -> std::io::Result<()> {
-    let nx = 1500;
-    let ny = 750;
+    let nx = 500;
+    let ny = 250;
     let n_samples = 50;
 
     let mut file = File::create("foo.ppm")?;

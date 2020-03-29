@@ -10,7 +10,11 @@ cargo build
 
 ## Running the code
 ```rust
-cargo run
+cargo run -- -o [output_file_name] -x [image_x_size] -y [image_y_size]
+```
+e.g.
+```rust
+cargo run -- -o output.ppm -x 1000 -y 500
 ```
 
 ## References

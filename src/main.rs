@@ -19,6 +19,19 @@ use std::sync::{Arc};
 extern crate rand;
 use rand::Rng;
 
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+#[structopt(version = "1.0", author = "Joaquim Castilla")]
+struct Opts {
+    #[structopt(short = "o", long = "output", default_value = "output.ppm")]
+    output: String,
+    #[structopt(short = "x", long = "x_size", default_value = "250")]
+    x_size: i32,
+    #[structopt(short = "y", long = "y_size", default_value = "125")]
+    y_size: i32,
+}
+
 fn color(ray: &Ray, world: &Vec<Sphere>, depth: i32) -> Vec3 {
     if let Some(record) = (world.hit(ray, 0.001, f32::MAX)) {
         if let Some(scatter_ret) = record.material.scatter(ray, &record) {
@@ -53,22 +66,22 @@ fn random_scene() -> Vec<Sphere> {
             let center: Vec3 = Vec3::new(a as f32 +0.9*rng.gen::<f32>(), 0.2, b as f32 + 0.9*rng.gen::<f32>());
             if((center -  Vec3::new(4.0, 0.2, 0.0)).length() > 0.9) {
                 if(choose_mat < 0.8) {
-                    new_sphere = Sphere::new(center, 0.2, 
-                                            Arc::new(Lambertian { albedo: Vec3::new(rng.gen::<f32>() * rng.gen::<f32>(), 
+                    new_sphere = Sphere::new(center, 0.2,
+                                            Arc::new(Lambertian { albedo: Vec3::new(rng.gen::<f32>() * rng.gen::<f32>(),
                                                                                     rng.gen::<f32>() * rng.gen::<f32>(),
                                                                                     rng.gen::<f32>() * rng.gen::<f32>())}));
                     world.push(new_sphere);
                 }
                 else if(choose_mat < 0.95) {
-                    new_sphere = Sphere::new(center, 0.2, 
-                                            Arc::new(Metal { albedo: Vec3::new(0.5 * (1.0 + rng.gen::<f32>()), 
+                    new_sphere = Sphere::new(center, 0.2,
+                                            Arc::new(Metal { albedo: Vec3::new(0.5 * (1.0 + rng.gen::<f32>()),
                                                                                0.5 * (1.0 + rng.gen::<f32>()),
                                                                                0.5 * (1.0 + rng.gen::<f32>())),
                                                                                fuzz: 0.5 * rng.gen::<f32>()}));
                     world.push(new_sphere);
                 }
                 else {
-                    new_sphere = Sphere::new(center, 0.2, 
+                    new_sphere = Sphere::new(center, 0.2,
                                             Arc::new(Dielectric { refraction_index: 1.5}));
                 }
             }
@@ -81,14 +94,16 @@ fn random_scene() -> Vec<Sphere> {
     return world;
 }
 
-
-
 fn main() -> std::io::Result<()> {
-    let nx = 500;
-    let ny = 250;
+    // Read input parameters
+    let opts: Opts = Opts::from_args();
+
+    let outfile = opts.output;
+    let nx = opts.x_size;
+    let ny = opts.y_size;
     let n_samples = 50;
 
-    let mut file = File::create("foo.ppm")?;
+    let mut file = File::create(outfile)?;
     let mut line = format!("P3\n{} {}\n255\n", nx, ny);
     file.write_all(line.as_bytes())?;
 
@@ -97,11 +112,6 @@ fn main() -> std::io::Result<()> {
     let dist_to_focus: f32 = (look_from - look_at).length();
     let aperture: f32 = 0.0;
     let camera: Camera = Camera::new(look_from, look_at, Vec3::new(0.0, 1.0, 0.0), 30.0, nx as f32/ny as f32, aperture, dist_to_focus);
-    // let world: Vec<Sphere> = vec![Sphere{ center: Vec3{e: [0.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Lambertian { albedo: Vec3 {e: [0.1, 0.2, 0.5]} })},
-    //                               Sphere{ center: Vec3{e: [0.0, -100.5, -1.0]}, radius: 100.0, material: Arc::new(Lambertian { albedo: Vec3 { e: [0.8, 0.8, 0.0]} })},
-    //                               Sphere{ center: Vec3{e: [1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Metal { albedo: Vec3 { e: [0.8, 0.6, 0.2]}, fuzz: 0.3 })},
-    //                               Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: 0.5, material: Arc::new(Dielectric { refraction_index: 1.5 }) },
-    //                               Sphere{ center: Vec3{e: [-1.0, 0.0, -1.0]}, radius: -0.45, material: Arc::new(Dielectric { refraction_index: 1.5 }) } ] ;
     let world = random_scene();
     // Random number generator
     let mut rng = rand::thread_rng();
@@ -122,7 +132,7 @@ fn main() -> std::io::Result<()> {
             line = format!("{} {} {}\n", ir, ig, ib);
             file.write_all(line.as_bytes())?;
         }
-       
+
     }
     Ok(())
 }
